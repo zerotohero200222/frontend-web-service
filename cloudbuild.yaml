@@ -1,0 +1,41 @@
+steps:
+  # Step 1: Build Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'build',
+        '-t',
+        'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:$BRANCH_NAME',
+        '.'
+      ]
+
+  # Step 2: Push to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      [
+        'push',
+        'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:$BRANCH_NAME'
+      ]
+
+  # Step 3: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'gcloud'
+    args:
+      [
+        'run',
+        'deploy',
+        'frontend-web',
+        '--image',
+        'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:$BRANCH_NAME',
+        '--region',
+        'us-east1',
+        '--platform',
+        'managed',
+        '--allow-unauthenticated'
+      ]
+
+images:
+  - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:$BRANCH_NAME'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
