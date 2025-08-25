@@ -1,5 +1,5 @@
 steps:
-  # Step 1: Build Docker image
+  # Step 1: Build Docker image with branch name as tag
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
@@ -9,7 +9,7 @@ steps:
         '.'
       ]
 
-  # Step 2: Push to Artifact Registry
+  # Step 2: Push Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       [
