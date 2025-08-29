@@ -1,0 +1,22 @@
+steps:
+  - name: 'maven:3.9.5-eclipse-temurin-17'
+    entrypoint: 'mvn'
+    args: ['clean', 'package', '-DskipTests']
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${BRANCH_NAME}'
+      - '.'
+
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${BRANCH_NAME}'
+
+images:
+  - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${BRANCH_NAME}'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
