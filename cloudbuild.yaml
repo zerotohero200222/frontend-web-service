@@ -1,28 +1,26 @@
 steps:
-  # Step 1: Build Java (Maven)
   - name: 'maven:3.9.5-eclipse-temurin-17'
     entrypoint: 'mvn'
     args: ['clean', 'package', '-DskipTests']
 
-  # Step 2: Build Docker image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '-t'
-      - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}'
+      - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${_BRANCH_NAME}-${_PR_ID}'
       - '.'
 
-  # Step 3: Push Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}'
+      - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${_BRANCH_NAME}-${_PR_ID}'
 
 images:
-  - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}'
+  - 'us-east1-docker.pkg.dev/hip-ether-466911-g0/blockstats-artifacts-docker/frontend-web:${_BRANCH_NAME}-${_PR_ID}'
 
 substitutions:
-  _BRANCH_FOR_IMAGE: 'default-branch'
+  _BRANCH_NAME: 'default-branch'
+  _PR_ID: 'none'
 
 options:
   logging: CLOUD_LOGGING_ONLY
