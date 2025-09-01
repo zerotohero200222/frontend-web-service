@@ -4,7 +4,7 @@ steps:
     entrypoint: 'mvn'
     args: ['clean', 'package', '-DskipTests']
 
-  # Step 2: Build Docker image
+  # Step 2: Build Docker image with branch name + PR number
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -23,7 +23,7 @@ images:
 
 substitutions:
   _BRANCH_NAME: '$BRANCH_NAME'
-  _PR_ID: '${PR_NUMBER}'
+  _PR_ID: 'none'
 
 options:
   logging: CLOUD_LOGGING_ONLY
