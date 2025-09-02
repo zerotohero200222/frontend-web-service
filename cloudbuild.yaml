@@ -4,26 +4,26 @@ steps:
     entrypoint: 'mvn'
     args: ['clean', 'package', '-DskipTests']
 
-  # Step 2: Build Docker image with branch name + PR number
+  # Step 2: Build Docker image with branch name + Pull Request ID
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
       - '-t'
-      - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_NAME}-${_PR_ID}'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}-${_PR_ID}'
       - '.'
 
   # Step 3: Push Docker image to Artifact Registry
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
-      - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_NAME}-${_PR_ID}'
+      - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}-${_PR_ID}'
 
 images:
-  - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_NAME}-${_PR_ID}'
+  - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}-${_PR_ID}'
 
 substitutions:
-  _BRANCH_NAME: '$BRANCH_NAME'
-  _PR_ID: 'none'
+  _BRANCH_FOR_IMAGE: '$BRANCH_NAME'
+  _PR_ID: '$(issue_comment.issue.id)'
 
 options:
   logging: CLOUD_LOGGING_ONLY
