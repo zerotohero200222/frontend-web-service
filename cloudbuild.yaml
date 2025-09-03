@@ -4,7 +4,7 @@ steps:
     entrypoint: 'mvn'
     args: ['clean', 'package', '-DskipTests']
 
-  # Step 2: Build Docker image with branch name + PR number
+  # Step 2: Build Docker image with branch name + PR number (fallback if PR number not available)
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -22,8 +22,8 @@ images:
   - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}-${_PR_ID}'
 
 substitutions:
-  _BRANCH_FOR_IMAGE: '$BRANCH_NAME'
-  _PR_ID: '${PR_NUMBER}'
+  _BRANCH_FOR_IMAGE: '$BRANCH_NAME'   # Provided by Cloud Build automatically
+  _PR_ID: '${PR_NUMBER:-none}'        # Uses PR number if PR trigger, else "none"
 
 options:
   logging: CLOUD_LOGGING_ONLY
