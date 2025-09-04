@@ -4,26 +4,45 @@ steps:
     entrypoint: 'mvn'
     args: ['clean', 'package', '-DskipTests']
 
-  # Step 2: Build Docker image with branch name + PR number (fallback if PR number not available)
-  - name: 'gcr.io/cloud-builders/docker'
+  # Step 2: Determine PR number (from GitHub PR trigger payload)
+  - name: 'alpine'
+    id: 'extract-pr-number'
+    entrypoint: 'sh'
     args:
-      - 'build'
-      - '-t'
-      - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}-${_PR_ID}'
-      - '.'
+      - -c
+      - |
+        echo "Extracting PR number from GitHub payload..."
+        if [ -n "${PR_NUMBER}" ]; then
+          echo "${PR_NUMBER}" > /workspace/pr_number.txt
+        else
+          echo "none" > /workspace/pr_number.txt
+        fi
+        echo "Using PR number: \$(cat /workspace/pr_number.txt)"
 
-  # Step 3: Push Docker image to Artifact Registry
+  # Step 3: Build Docker image with branch name + PR number
   - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-build'
+    entrypoint: 'bash'
     args:
-      - 'push'
-      - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}-${_PR_ID}'
+      - -c
+      - |
+        PR_NUMBER=\$(cat /workspace/pr_number.txt)
+        echo "Building Docker image for branch: \${BRANCH_NAME}, PR: \${PR_NUMBER}"
+        docker build -t us-east1-docker.pkg.dev/\$PROJECT_ID/blockstats-artifacts-docker/frontend-web:\${BRANCH_NAME}-\${PR_NUMBER} .
+
+  # Step 4: Push Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'docker-push'
+    entrypoint: 'bash'
+    args:
+      - -c
+      - |
+        PR_NUMBER=\$(cat /workspace/pr_number.txt)
+        echo "Pushing image: us-east1-docker.pkg.dev/\$PROJECT_ID/blockstats-artifacts-docker/frontend-web:\${BRANCH_NAME}-\${PR_NUMBER}"
+        docker push us-east1-docker.pkg.dev/\$PROJECT_ID/blockstats-artifacts-docker/frontend-web:\${BRANCH_NAME}-\${PR_NUMBER}
 
 images:
-  - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${_BRANCH_FOR_IMAGE}-${_PR_ID}'
-
-substitutions:
-  _BRANCH_FOR_IMAGE: '$BRANCH_NAME'   # Provided by Cloud Build automatically
-  _PR_ID: '${PR_NUMBER:-none}'        # Uses PR number if PR trigger, else "none"
+  - 'us-east1-docker.pkg.dev/$PROJECT_ID/blockstats-artifacts-docker/frontend-web:${BRANCH_NAME}-${PR_NUMBER}'
 
 options:
   logging: CLOUD_LOGGING_ONLY
